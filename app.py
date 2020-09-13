@@ -189,7 +189,9 @@ def start(start):
     #When given the start only, calculate TMIN, TAVG, and TMAX for all dates greater than and equal to the start date.
 
     todays_date = dt.datetime.date(dt.datetime.now())
-    results = start_end(start, todays_date)
+    #print(f'Todays date is {todays_date}')
+
+    results = start_end(start, todays_date.strftime('%Y-%m-%d'))
 
     # results should already be jsonified from the start_end funtion
     return results
@@ -202,10 +204,32 @@ def start_end(start, end):
 
     print(f"Server received a request for temperature summary data from start date: {start} to end date: {end}...")
 
+    # First, convert the function arguments to datetime object by parsing the strings
+    start_date = dt.datetime.strptime(start,'%Y-%m-%d')
+    end_date = dt.datetime.strptime(end,'%Y-%m-%d')
+
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    # Second, 
     #When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates between the start and end date inclusive.
+    temperature_data =  session.query(Measurement.date, func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).filter(func.strftime("%Y-%m-%d", Measurement.date) >= start_date).filter(func.strftime("%Y-%m-%d", Measurement.date) <= end_date).group_by(Measurement.date).all()
+
+    session.close()
 
 
-    return "Hello World!"
+    all_temp_summaries = []                       
+    for row in temperature_data:
+        temperature_data_dict = {}
+        temperature_data_dict["Date"] = row[0]
+        temperature_data_dict["Minimum Temp"] = row[1]
+        temperature_data_dict["Average Temp"] = row[2]
+        temperature_data_dict["Maximum Temp"] = row[3]
+
+        all_temp_summaries.append(temperature_data_dict)
+
+    return jsonify(all_temp_summaries)
+
 
 
 
