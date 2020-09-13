@@ -213,15 +213,15 @@ def start_end(start, end):
 
     # Second, 
     #When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates between the start and end date inclusive.
-    temperature_data =  session.query(Measurement.date, func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).filter(func.strftime("%Y-%m-%d", Measurement.date) >= start_date).filter(func.strftime("%Y-%m-%d", Measurement.date) <= end_date).group_by(Measurement.date).all()
+    results =  session.query(Measurement.date, func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).filter(func.strftime("%Y-%m-%d", Measurement.date) >= start_date).filter(func.strftime("%Y-%m-%d", Measurement.date) <= end_date).group_by(Measurement.date).all()
 
     session.close()
 
 
     all_temp_summaries = []                       
-    for row in temperature_data:
+    for row in results:
         temperature_data_dict = {}
-        temperature_data_dict["Date"] = row[0]
+        temperature_data_dict["Date"] = row.date
         temperature_data_dict["Minimum Temp"] = row[1]
         temperature_data_dict["Average Temp"] = row[2]
         temperature_data_dict["Maximum Temp"] = row[3]
